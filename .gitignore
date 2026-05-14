@@ -1,0 +1,20 @@
+# Data and DB (DO NOT UPLOAD)
+data/
+chroma_db/
+
+# Virtual Environment & Secrets
+venv/
+.env
+
+# Python Cache
+__pycache__/
+*.pyc
+
+# Runtime Tracker
+ingestion/ingested_files.json
+
+# Test and Scratch files
+pdf_samples/
+chunk_validation/
+scratch_*.py
+verify_db.py

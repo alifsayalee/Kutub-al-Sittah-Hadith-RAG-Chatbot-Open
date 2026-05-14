@@ -97,7 +97,7 @@ and then passes them as context to a Gemini LLM to generate a coherent answer.
 
 ### Step 3a: Retrieval Module (`retrieval/retriever.py`)
 1. Takes a user's natural language question
-2. Embeds it using the same BAAI/bge-m3 model (query mode, loaded locally)
+2. Embeds it using the same BAAI/bge-m3 model (query mode, done through HF API)
 3. Searches ChromaDB for the top-K most similar hadiths
 4. Returns results with metadata (book, volume, hadith number, text)
 

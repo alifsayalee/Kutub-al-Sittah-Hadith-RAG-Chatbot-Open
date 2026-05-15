@@ -1,8 +1,10 @@
 # Kutub al-Sittah RAG Pipeline
 
-A robust, fully local Retrieval-Augmented Generation (RAG) pipeline designed to extract, chunk, and embed the six canonical hadith collections (Kutub al-Sittah) in English. 
+A robust, partially-local Retrieval-Augmented Generation (RAG) pipeline designed to extract, chunk, embed and answer questions from the six canonical hadith collections (Kutub al-Sittah) in English, using LLM. 
 
 The pipeline parses raw PDFs, intelligently chunks text into individual hadiths (filtering out commentary and editor notes), and embeds them using the `BAAI/bge-m3` model via `sentence-transformers`. All embeddings are stored locally in a ChromaDB vector database for blazing-fast semantic search.
+
+Then when the pipeline is queried, it uses HuggingFace Inference API to embed the query and then uses google gemini API to answer the query based on the retrieved hadiths.
 
 ## Data Source
 
@@ -32,6 +34,8 @@ The project processes **37 volumes** across the 6 canonical books, resulting in 
 - **Chunking**: A custom, state-machine-based chunking logic that handles varied regex formats (`[N]`, `N.`, etc.) and filters non-hadith text using keyword heuristics.
 - **Embedding**: `BAAI/bge-m3` running 100% locally on CPU via `sentence-transformers` (1024-dimension vectors). Memory-throttled to safely run on 8GB RAM systems.
 - **Vector DB**: `ChromaDB` running persistently on the local disk.
+- **Retrieval**: Uses the Hugging Face Free Inference API to instantly embed user queries into vectors without local hardware overhead.
+- **Generation (LLM)**: Integrates with the Google Gemini API to synthesize plain-English answers restricted exclusively to the retrieved hadith texts, ensuring zero hallucination.
 
 ## How to Run
 
@@ -39,9 +43,19 @@ The project processes **37 volumes** across the 6 canonical books, resulting in 
    ```bash
    pip install -r requirements.txt
    ```
-2. **Setup Data**: Create a `data/` folder and organize the PDFs by book (e.g. `data/bukhari/vol1.pdf`).
-3. **Run Ingestion**:
+2. **Environment Setup**: Create a `.env` file in the root directory and add your API keys for the retrieval phase:
+   ```env
+   GOOGLE_API_KEY=your_gemini_key
+   HF_API_TOKEN=your_huggingface_token
+   ```
+3. **Setup Data**: Create a `data/` folder and organize the PDFs by book (e.g. `data/bukhari/vol1.pdf`).
+4. **Run Ingestion**:
    ```bash
    python -m ingestion.ingest
    ```
    *The first run will automatically download the ~2.2GB BAAI model to your local Hugging Face cache. The ingestion script is highly robust and idempotent—you can stop it (Ctrl+C) at any time and it will instantly resume from where it left off on the next run.*
+5. **Test Retrieval**:
+   ```bash
+   python test_retrieval.py
+   ```
+   *This will run a sample query through the full RAG pipeline and print the synthesized Gemini answer along with exact source citations.*

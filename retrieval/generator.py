@@ -5,6 +5,7 @@ Handles answering queries using Google Gemini API based on retrieved context.
 """
 import os
 from google import genai
+from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -29,13 +30,13 @@ def generate_answer(query_text: str, retrieved_hadiths: list[dict]) -> str:
         )
     context_str = "\n\n".join(context_blocks)
     
-    prompt = f"""You are an expert Islamic RAG assistant. 
-You must answer the user's question using ONLY the provided hadith context below.
+    system_prompt = """You are an expert Islamic RAG assistant. 
+You must answer the user's question using ONLY the provided hadith context.
 Provide your answer in exactly 2-3 coherent paragraphs in easy to understand English.
 If the context does not contain the answer, explicitly state that "I could not find any relevant data to this, please consult a scholar."
-Do not hallucinate or bring in outside knowledge. 
+Do not bring in outside knowledge."""
 
-CONTEXT:
+    user_prompt = f"""CONTEXT:
 {context_str}
 
 USER QUESTION:
@@ -45,7 +46,10 @@ ANSWER:"""
 
     response = gemini_client.models.generate_content(
         model='gemini-2.5-flash',
-        contents=prompt,
+        contents=user_prompt,
+        config=types.GenerateContentConfig(
+            system_instruction=system_prompt,
+        )
     )
     
     return response.text

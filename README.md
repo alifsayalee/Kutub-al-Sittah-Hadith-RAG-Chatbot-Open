@@ -59,3 +59,21 @@ The project processes **37 volumes** across the 6 canonical books, resulting in 
    python test_retrieval.py
    ```
    *This will run a sample query through the full RAG pipeline and print the synthesized Gemini answer along with exact source citations.*
+
+### Example Query Output
+
+Here is an example of the pipeline's output when asked: *"What is the reward for fasting during the month of Ramadan?"*
+
+```text
+GEMINI'S ANSWER:
+For those who fast during the month of Ramadan with sincere faith and hoping for a reward from Allah, all their previous sins will be forgiven. Fasting holds a unique status, as Allah has declared, "fasting is for Me and I shall reward for it," distinguishing it from other good deeds which are multiplied manifold.
+
+A fasting person experiences two distinct joys: one when they break their fast, and another on the day they meet their Lord. Additionally, the smell emanating from the mouth of a fasting person is considered better before Allah than the fragrance of musk. These blessings are bestowed upon those who observe the fast out of sincere faith and with an honest intention, solely for Allah's sake.
+
+SOURCES USED:
+- Sunan Abu Dawud, Vol 2, Hadith 1372
+- Sahih al-Bukhari, Vol 3, Hadith 2014
+- Sahih al-Bukhari, Vol 3, Hadith 1900
+- Sunan an-Nasai, Vol 3, Hadith 2216
+- Sunan Ibn Majah, Vol 2, Hadith 1638
+```

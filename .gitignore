@@ -19,3 +19,4 @@ chunk_validation/
 scratch_*.py
 verify_db.py
 test_*.py
+!test_retrieval.py

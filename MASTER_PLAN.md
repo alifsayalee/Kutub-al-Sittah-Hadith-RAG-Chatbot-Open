@@ -90,7 +90,7 @@ and provides a search/retrieval interface powered by an LLM.
 
 ---
 
-## Phase 3 — Retrieval & RAG Generation [PENDING]
+## Phase 3 — Retrieval & RAG Generation [COMPLETED]
 
 This is the core RAG phase. The system retrieves relevant hadiths from ChromaDB
 and then passes them as context to a Gemini LLM to generate a coherent answer.
@@ -125,7 +125,7 @@ The final output shown to the user must follow this exact format:
 
 ---
 
-## Phase 4 — CLI Application [PENDING]
+## Phase 4 — CLI Application [COMPLETED]
 
 ### Goal
 Build an interactive terminal interface where the user can:
@@ -178,3 +178,5 @@ HF_HUB_DISABLE_TELEMETRY=1
 | 2026-05-13 | Phase 2 COMPLETED: 31,414 hadiths embedded & stored in ChromaDB  |
 | 2026-05-13 | Semantic search + metadata filtering verified working            |
 | 2026-05-13 | Plan updated: RAG/LLM generation details added (Gemini free tier)|
+| 2026-05-20 | Phase 3 COMPLETED: Separate retrieval & generation modules verified working |
+| 2026-05-20 | Phase 4 COMPLETED: Beautiful interactive CLI app (`chat.py`) built using `rich` |

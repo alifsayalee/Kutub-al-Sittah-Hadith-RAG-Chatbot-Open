@@ -20,7 +20,7 @@ import torch
 from sentence_transformers import SentenceTransformer
 from dotenv import load_dotenv
 
-# Limit PyTorch to 2 threads so it doesn't max out the CPU
+# Limit PyTorch to 6 threads to balance speed vs CPU contention
 torch.set_num_threads(6)
 
 load_dotenv()

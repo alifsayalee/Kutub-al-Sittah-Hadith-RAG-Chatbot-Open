@@ -41,7 +41,7 @@ def search_database(query_vector: list[float], book_filter: str = None) -> list[
         query_embeddings=[query_vector],
         n_results=TOP_K,
         where=where_clause,
-        include=["documents", "metadatas"]
+        include=["documents", "metadatas", "distances"]
     )
     
     retrieved = []
@@ -49,6 +49,7 @@ def search_database(query_vector: list[float], book_filter: str = None) -> list[
         ids = results["ids"][0]
         docs = results["documents"][0]
         metas = results["metadatas"][0]
+        distances = results["distances"][0] if results.get("distances") else [1.0] * len(ids)
         
         for i in range(len(ids)):
             retrieved.append({
@@ -56,7 +57,8 @@ def search_database(query_vector: list[float], book_filter: str = None) -> list[
                 "text": docs[i],
                 "book": metas[i].get("book_display", "Unknown Book"),
                 "volume": metas[i].get("volume", "Unknown"),
-                "hadith_number": metas[i].get("hadith_number", "Unknown")
+                "hadith_number": metas[i].get("hadith_number", "Unknown"),
+                "distance": distances[i]
             })
             
     return retrieved

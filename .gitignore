@@ -20,3 +20,9 @@ scratch_*.py
 verify_db.py
 test_*.py
 !test_retrieval.py
+
+# Agentic Workspace Artifacts
+implementation_plan.md
+task.md
+walkthrough.md
+project_status.md

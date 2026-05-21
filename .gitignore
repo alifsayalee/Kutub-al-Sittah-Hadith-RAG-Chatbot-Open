@@ -1,6 +1,5 @@
-# Data and DB (DO NOT UPLOAD)
-data/
-chroma_db/
+# Vector Database (large binary files)
+chroma_db_v2/
 
 # Virtual Environment & Secrets
 venv/
@@ -10,16 +9,8 @@ venv/
 __pycache__/
 *.pyc
 
-# Runtime Tracker
-ingestion/ingested_files.json
-
 # Test and Scratch files
-pdf_samples/
-chunk_validation/
 scratch_*.py
-verify_db.py
-test_*.py
-!test_retrieval.py
 
 # Agentic Workspace Artifacts
 implementation_plan.md

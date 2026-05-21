@@ -2,7 +2,7 @@
 retrieval/retriever.py
 
 Handles query embedding via Hugging Face Inference API and
-ChromaDB vector search. (Phase 3a)
+ChromaDB vector search.
 """
 import os
 import chromadb
@@ -12,9 +12,10 @@ from huggingface_hub import InferenceClient
 load_dotenv()
 
 HF_API_TOKEN = os.getenv("HF_API_TOKEN")
-CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_db")
-CHROMA_COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "kutub_al_sittah")
-TOP_K = int(os.getenv("TOP_K", "5"))
+CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "./chroma_db_v2")
+CHROMA_COLLECTION_NAME = os.getenv("CHROMA_COLLECTION_NAME", "kutub_al_sittah_v2")
+TOP_K = int(os.getenv("TOP_K", "3"))
+MAX_RESULT_DISTANCE = 0.42  # Per-result cosine distance ceiling
 
 chroma_client = chromadb.PersistentClient(
     path=CHROMA_DB_PATH,
@@ -33,8 +34,9 @@ def get_query_embedding(query_text: str) -> list[float]:
     vector = hf_client.feature_extraction(query_text)
     return vector.tolist()
 
+
 def search_database(query_vector: list[float], book_filter: str = None) -> list[dict]:
-    """Searches ChromaDB for the closest vectors."""
+    """Searches ChromaDB for the closest vectors to the query."""
     where_clause = {"book": book_filter} if book_filter else None
     
     results = collection.query(
@@ -52,13 +54,20 @@ def search_database(query_vector: list[float], book_filter: str = None) -> list[
         distances = results["distances"][0] if results.get("distances") else [1.0] * len(ids)
         
         for i in range(len(ids)):
+            distance = distances[i]
+            # Distance ceiling — skip results too far from query
+            if distance > MAX_RESULT_DISTANCE:
+                continue
+                
             retrieved.append({
                 "id": ids[i],
                 "text": docs[i],
                 "book": metas[i].get("book_display", "Unknown Book"),
                 "volume": metas[i].get("volume", "Unknown"),
                 "hadith_number": metas[i].get("hadith_number", "Unknown"),
-                "distance": distances[i]
+                "grade": metas[i].get("grade", ""),
+                "reference_url": metas[i].get("reference_url", ""),
+                "distance": distance
             })
             
-    return retrieved
+    return retrieved[:TOP_K]

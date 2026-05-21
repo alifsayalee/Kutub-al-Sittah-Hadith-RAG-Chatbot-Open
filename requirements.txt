@@ -1,7 +1,6 @@
-pymupdf
 chromadb
 python-dotenv
-sentence-transformers
-pydantic
+huggingface-hub
+requests
 rich
-google-genai
+pydantic

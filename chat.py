@@ -70,28 +70,37 @@ def select_book_filter() -> str:
     return selected_book
 
 def sanitize_hadith_text(raw_text: str) -> str:
-    """Dynamic regular expression cleaner to purge OCR noise and Arabic script artifacts."""
+    """Light text cleanup preserving all Unicode characters (Arabic, salawat symbols, etc.)."""
     if not raw_text:
         return ""
-    
-    # 1. Replace non-ASCII characters (corrupt Arabic markers) with space
-    text = re.sub(r'[^\x00-\x7F]+', ' ', raw_text)
-    
-    # 2. Remove typical garbled OCR punctuation patterns (e.g. "@$", ".~;", ";-;", "+-+-")
-    text = re.sub(r'[\d\w]*\s*[:\-\+~@\$#!%&*?_\\/|]{2,}\s*[\d\w]*', ' ', text)
-    text = re.sub(r'\b[a-zA-Z\d]*[~@\$#%&*?_\\/|]+[a-zA-Z\d]*\b', ' ', text)
-    
-    # 3. Strip out broken page/book bracket sequences like [~/] or [ \ o ]
-    text = re.sub(r'\[\s*[\\/]?\s*[a-zA-Z0-9\s]*\s*[\\/]?\s*\]', ' ', text)
-    
-    # 4. Standardise spacing and multiple newlines
-    text = re.sub(r'\s+', ' ', text)
-    text = text.strip()
-    
-    # 5. Fix spacing issues around standard English punctuation
-    text = re.sub(r'\s+([.,;:?!])', r'\1', text)
-    
+    # Normalise whitespace only — the clean dataset needs no OCR sanitisation
+    text = re.sub(r'\s+', ' ', raw_text).strip()
     return text
+
+def get_word_overlap_similarity(text1: str, text2: str) -> float:
+    """Computes Jaccard similarity of normalized words to detect mismatched hadiths across editions."""
+    # Lowercase and keep only alphabetical words of length >= 3
+    words1 = set(re.findall(r'\b[a-z]{3,}\b', text1.lower()))
+    words2 = set(re.findall(r'\b[a-z]{3,}\b', text2.lower()))
+    
+    if not words1 or not words2:
+        return 0.0
+        
+    # Filter standard high-frequency stop words to focus on content matching
+    stopwords = {
+        "the", "and", "that", "was", "for", "with", "his", "him", "her", 
+        "they", "them", "this", "had", "not", "but", "she", "you", "are", 
+        "our", "out", "from", "has", "have", "been", "were", "who", "which"
+    }
+    words1 = words1 - stopwords
+    words2 = words2 - stopwords
+    
+    if not words1 or not words2:
+        return 0.0
+        
+    intersection = words1.intersection(words2)
+    union = words1.union(words2)
+    return len(intersection) / len(union)
 
 def handle_view_command(clean_query: str):
     """Processes `/view <number>` commands statefully."""
@@ -128,20 +137,27 @@ def handle_view_command(clean_query: str):
         raw_book_key = DISPLAY_TO_RAW_MAPPING.get(display_book, "")
         hadith_num = source["hadith_number"]
         
+        cleaned_local_text = sanitize_hadith_text(source["text"])
         cleaned_text = None
         is_api_sourced = False
+        similarity_score = 0.0
         
         # Try fetching from digital API first
         if raw_book_key:
             with console.status("[bold green]Fetching pristine translation from API...", spinner="dots"):
                 api_text = fetch_clean_hadith(raw_book_key, hadith_num)
                 if api_text:
-                    cleaned_text = api_text
-                    is_api_sourced = True
+                    similarity_score = get_word_overlap_similarity(cleaned_local_text, api_text)
+                    # If similarity is >= 0.15, we accept the online text as matching
+                    if similarity_score >= 0.15:
+                        cleaned_text = api_text
+                        is_api_sourced = True
+                    else:
+                        console.print(f"[dim yellow]ℹ Note: Online database numbering mismatch detected (Similarity: {similarity_score:.2f}). Fallback to local text.[/dim yellow]")
         
         # Local database failsafe if offline, mismatched, or rate-limited
         if not cleaned_text:
-            cleaned_text = sanitize_hadith_text(source["text"])
+            cleaned_text = cleaned_local_text
             
         meta_title = f"📖 {source['book']}, Vol {source['volume']}, Hadith {source['hadith_number']}"
         if is_api_sourced:
@@ -160,6 +176,7 @@ def handle_view_command(clean_query: str):
         
     except ValueError:
         console.print("[bold red]⚠ Please specify a valid integer index (e.g., /view 1)[/bold red]\n")
+
 
 def start_chat_loop():
     global last_retrieved_sources
@@ -214,7 +231,7 @@ def start_chat_loop():
                     # Layer 1: Distance-Based Retriever Shield
                     # Cosine distance > 0.45 denotes highly unrelated vectors
                     top_distance = retrieved_hadiths[0].get("distance", 1.0)
-                    if top_distance > 0.45:
+                    if top_distance > 0.42:
                         answer = "I could not find any relevant data to this, please consult a scholar."
                         is_fallback = True
                     else:

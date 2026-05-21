@@ -1,6 +1,6 @@
 # Kutub al-Sittah Hadith RAG Chatbot
 
-A high-performance, intelligent Retrieval-Augmented Generation (RAG) system for the six canonical Hadith collections (Kutub al-Sittah) in English.
+A high-performance, intelligent Retrieval-Augmented Generation (RAG) Chatot for the six canonical Hadith collections (Kutub al-Sittah) in English.
 
 The pipeline downloads a clean, pre-structured dataset from HuggingFace (sourced from [sunnah.com](https://sunnah.com)), runs a 7-step validation filter, embeds all hadiths using `BAAI/bge-m3` on a Google Colab T4 GPU, and stores them in a ChromaDB vector database. When queried, it uses the OpenRouter API to generate natural, synthesised, plain-English answers strictly grounded in retrieved hadiths, complete with pristine online digital citations and automated zero-leakage safety filters.
 
